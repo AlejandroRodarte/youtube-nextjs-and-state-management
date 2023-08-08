@@ -1,13 +1,11 @@
 import { useMemo, useState } from 'react';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
+import { DehydratedState, QueryClient, dehydrate, useQuery } from 'react-query';
 import styles from '../styles/pages/index.module.css';
 import { Pokemon } from '@/interfaces/pokemon.interface';
-import { useQuery } from 'react-query';
 
-interface HomeProps {
-  initialPokemons: Pokemon[];
-}
+interface HomeProps {}
 
 // fetcher function: required by react-query
 const getPokemons = async () => {
@@ -18,16 +16,16 @@ const getPokemons = async () => {
   return json as Pokemon[];
 };
 
-export const getServerSideProps: GetServerSideProps<
-  Pick<HomeProps, 'initialPokemons'>
-> = async () => {
-  const pokemons = await getPokemons();
-  return { props: { initialPokemons: pokemons } };
+export const getServerSideProps: GetServerSideProps<{
+  dehydratedState: DehydratedState;
+}> = async () => {
+  const queryClient = new QueryClient();
+  await queryClient.prefetchQuery('pokemons', getPokemons);
+  return { props: { dehydratedState: dehydrate(queryClient) } };
 };
 
 export default function Home(props: HomeProps) {
   const { data: pokemons } = useQuery('pokemons', getPokemons, {
-    initialData: props.initialPokemons,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
   });
