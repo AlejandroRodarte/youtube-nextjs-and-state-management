@@ -3,18 +3,43 @@ import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import styles from '../styles/pages/index.module.css';
 import { Pokemon } from '@/interfaces/pokemon.interface';
+import { useQuery } from 'react-query';
 
 interface HomeProps {
-  pokemons: Pokemon[];
+  initialPokemons: Pokemon[];
 }
 
+// fetcher function: required by react-query
+const getPokemons = async () => {
+  const response = await fetch(
+    'http://jherr-pokemon.s3.us-west-1.amazonaws.com/index.json'
+  );
+  const json = await response.json();
+  return json as Pokemon[];
+};
+
+export const getServerSideProps: GetServerSideProps<
+  Pick<HomeProps, 'initialPokemons'>
+> = async () => {
+  const pokemons = await getPokemons();
+  return { props: { initialPokemons: pokemons } };
+};
+
 export default function Home(props: HomeProps) {
+  const { data: pokemons } = useQuery('pokemons', getPokemons, {
+    initialData: props.initialPokemons,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+
   const [filter, setFilter] = useState('');
   const filteredPokemons = useMemo(() => {
-    return props.pokemons.filter((pokemon) =>
-      pokemon.name.toLowerCase().includes(filter.toLowerCase())
-    );
-  }, [props.pokemons, filter]);
+    return !pokemons
+      ? []
+      : pokemons.filter((pokemon) =>
+          pokemon.name.toLowerCase().includes(filter.toLowerCase())
+        );
+  }, [pokemons, filter]);
 
   return (
     <div className={styles.main}>
@@ -45,14 +70,3 @@ export default function Home(props: HomeProps) {
     </div>
   );
 }
-
-export const getServerSideProps: GetServerSideProps<
-  Pick<HomeProps, 'pokemons'>
-> = async () => {
-  const response = await fetch(
-    'http://jherr-pokemon.s3.us-west-1.amazonaws.com/index.json'
-  );
-  const pokemons = (await response.json()) as Pokemon[];
-
-  return { props: { pokemons } };
-};
