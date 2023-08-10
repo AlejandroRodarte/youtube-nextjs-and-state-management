@@ -4,6 +4,7 @@ import initialState from './initial-state.object';
 import setSearch from './reducers/set-search.reducer';
 import extraReducers from './extra-reducers.helper';
 import { SLICE_NAME } from './slice-name.constant';
+import rehydrate from './reducers/rehydrate.reducer';
 
 // the store slice object itself
 // (1) give it a name
@@ -14,6 +15,7 @@ const pokemonSlice = createSlice({
   name: SLICE_NAME,
   initialState,
   reducers: {
+    rehydrate,
     setSearch,
   },
   extraReducers,

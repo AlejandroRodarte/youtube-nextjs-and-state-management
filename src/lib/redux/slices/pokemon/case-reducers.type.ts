@@ -19,6 +19,12 @@ export type ReducerThis = ValidateSliceCaseReducers<
 
 // type definition for case reducers
 export type CaseReducers = {
+  // signature for actions.rehydrate()
+  rehydrate: (
+    this: ReducerThis,
+    state: Draft<PokemonState>,
+    action: PayloadAction<PokemonState>
+  ) => void;
   // signature for actions.setSearch()
   setSearch: (
     this: ReducerThis,

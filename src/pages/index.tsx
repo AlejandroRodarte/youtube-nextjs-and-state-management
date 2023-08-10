@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import { useSelector } from 'react-redux';
@@ -10,11 +11,17 @@ import { getStore } from '@/lib/redux/get-store.helper';
 import { getPokemons } from '@/lib/redux/slices/pokemon/async-thunks/get-pokemons.async-thunk';
 import { RootState } from '@/lib/redux/root-state.type';
 
-interface HomeProps {}
+interface HomeProps {
+  initialState: RootState;
+}
 
 export default function Home(props: HomeProps) {
   // get dispatch function to dispatch actions
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(actions.rehydrate(props.initialState.pokemon));
+  }, [dispatch, props.initialState.pokemon]);
 
   // get pieces of data from the root state
   const pokemons = useSelector(selectors.getFilteredPokemons);

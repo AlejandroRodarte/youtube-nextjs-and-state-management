@@ -7,7 +7,7 @@ import { getStore } from '@/lib/redux/get-store.helper';
 export default function App({ Component, pageProps }: AppProps) {
   // create store instance and initialize with a pre-populated root state object
   // that may have been populated by getStaticProps/getServerSideProps
-  const store = getStore(pageProps.initialState);
+  const store = getStore();
   return (
     <Provider store={store}>
       <Component {...pageProps} />;
