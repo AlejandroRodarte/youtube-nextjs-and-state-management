@@ -1,20 +1,24 @@
-import { useMemo, useState } from 'react';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
-import styles from '../styles/pages/index.module.css';
-import { Pokemon } from '@/lib/interfaces/pokemon.interface';
+import { useSelector } from 'react-redux';
 
-interface HomeProps {
-  pokemons: Pokemon[];
-}
+import styles from '../styles/pages/index.module.css';
+import { useAppDispatch } from '@/lib/redux/use-app-dispatch.hook';
+import selectors from '@/lib/redux/selectors.object';
+import { actions } from '@/lib/redux/slices/pokemon/pokemon.slice';
+import { getStore } from '@/lib/redux/get-store.helper';
+import { getPokemons } from '@/lib/redux/slices/pokemon/async-thunks/get-pokemons.async-thunk';
+import { RootState } from '@/lib/redux/root-state.type';
+
+interface HomeProps {}
 
 export default function Home(props: HomeProps) {
-  const [filter, setFilter] = useState('');
-  const filteredPokemons = useMemo(() => {
-    return props.pokemons.filter((pokemon) =>
-      pokemon.name.toLowerCase().includes(filter.toLowerCase())
-    );
-  }, [props.pokemons, filter]);
+  // get dispatch function to dispatch actions
+  const dispatch = useAppDispatch();
+
+  // get pieces of data from the root state
+  const pokemons = useSelector(selectors.getFilteredPokemons);
+  const search = useSelector(selectors.getSearch);
 
   return (
     <div className={styles.main}>
@@ -26,13 +30,15 @@ export default function Home(props: HomeProps) {
       <div>
         <input
           type="text"
-          value={filter}
-          onChange={(e) => setFilter(() => e.target.value)}
+          value={search}
+          onChange={(e) =>
+            dispatch(actions.setSearch({ value: e.target.value }))
+          }
           className={styles.search}
         />
       </div>
       <div className={styles.container}>
-        {filteredPokemons.slice(0, 20).map((pokemon) => (
+        {pokemons.slice(0, 20).map((pokemon) => (
           <div key={pokemon.id} className={styles.image}>
             <img
               alt={pokemon.name}
@@ -46,13 +52,15 @@ export default function Home(props: HomeProps) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps<
-  Pick<HomeProps, 'pokemons'>
-> = async () => {
-  const response = await fetch(
-    'http://jherr-pokemon.s3.us-west-1.amazonaws.com/index.json'
-  );
-  const pokemons = (await response.json()) as Pokemon[];
-
-  return { props: { pokemons } };
+export const getServerSideProps: GetServerSideProps<{
+  initialState: RootState;
+}> = async () => {
+  // when first load occurs, which is on the server, create a
+  // store instance to dispatch async thunk pokemon/getPokemons
+  const store = getStore();
+  await store.dispatch(getPokemons());
+  // after pokemons are populated into the store (at pokemon/getPokemons/fulfilled),
+  // get a snapshot of the current root state and pass it to pageProps.initialState,
+  // which is then picked by _app.tsx to pre-populate the store client-side
+  return { props: { initialState: store.getState() } };
 };
