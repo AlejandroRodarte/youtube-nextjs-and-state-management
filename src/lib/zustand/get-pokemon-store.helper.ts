@@ -11,11 +11,11 @@ import initialState from './initial-state.object';
 import computeState from './compute-state.helper';
 
 // function to generate the full state creator function
-const createComputedState = (
+const createComputedStateCreator = (
   preloadedState?: Partial<PokemonStateWithoutFunctions>
 ) => {
   // state creator function for non-computed properties
-  const handler = (
+  const stateCreator = (
     set: (
       partial:
         | PokemonState
@@ -32,15 +32,15 @@ const createComputedState = (
   });
 
   // wrap both state creator (handler and computeState) with the computed() middleware
-  const computedState = computed(handler, computeState);
-  return computedState;
+  const computedStateCreator = computed(stateCreator, computeState);
+  return computedStateCreator;
 };
 
 // create a zustand store...
 const getPokemonStore = {
   // ...for the client
   onClient: (preloadedState?: Partial<PokemonStateWithoutFunctions>) => {
-    const computedState = createComputedState(preloadedState);
+    const computedStateCreator = createComputedStateCreator(preloadedState);
     return {
       type: 'client' as const,
       // (1) zustand store will be persisted into local storage so it doesn't dissappear
@@ -48,16 +48,19 @@ const getPokemonStore = {
       // (2) { skipHydration: true } is required to avoid hydration errors,
       // please visit https://github.com/pmndrs/zustand/issues/938 for more information on it
       instance: create<PokemonState>()(
-        persist(computedState, { name: 'pokemon-storage', skipHydration: true })
+        persist(computedStateCreator, {
+          name: 'pokemon-storage',
+          skipHydration: true,
+        })
       ),
     };
   },
   // ...for the server: persist() middleware is not needed
   onServer: (preloadedState?: Partial<PokemonStateWithoutFunctions>) => {
-    const computedState = createComputedState(preloadedState);
+    const computedStateCreator = createComputedStateCreator(preloadedState);
     return {
       type: 'server' as const,
-      instance: create<PokemonState>()(computedState),
+      instance: create<PokemonState>()(computedStateCreator),
     };
   },
 };
