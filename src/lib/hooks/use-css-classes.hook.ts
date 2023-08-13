@@ -29,7 +29,7 @@ export default function useCssClasses(
         (item) => item,
         (a, b) => a === b
       ),
-    []
+    [removeFromArr]
   );
 
   return { classes, add, remove };

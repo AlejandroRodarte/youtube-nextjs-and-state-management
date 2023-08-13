@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { GetServerSideProps, GetStaticProps } from 'next';
+import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
 
@@ -50,7 +50,7 @@ export default function Home(props: HomeProps) {
   // remove this hidden CSS class and showcase our dynamic content properly
   useEffect(() => {
     removeMainClass(styles['hidden-element']);
-  }, []);
+  }, [removeMainClass]);
 
   return (
     <div className={mainClasses}>
@@ -84,42 +84,7 @@ export default function Home(props: HomeProps) {
 }
 
 // getServerSideProps can populate some zustand state data
-// export const getServerSideProps: GetServerSideProps<{
-//   preloadedState: Partial<PokemonStateWithoutFunctions>;
-// }> = async () => {
-//   const response = await fetch(
-//     'http://jherr-pokemon.s3.us-west-1.amazonaws.com/index.json'
-//   );
-//   const pokemons = (await response.json()) as Pokemon[];
-
-//   // create a short-lived, server-side-only zustand store
-//   const pokemonStore = getPokemonStore.onServer().instance;
-
-//   // set raw pokemon list on store
-//   pokemonStore.getState().setPokemons(pokemons);
-
-//   // get current state snapshot
-//   const pokemonState = pokemonStore.getState();
-
-//   // (1) populate props.preloadedState with server-side-fetched data
-//   // (2) remember, this is grabbed by _app.tsx at pageProps.preloadedState
-//   // and is used by useStoreRef() to create the both server and client zustand stores
-//   // (3) the server zustand store is used for SSR/SSG generation
-//   // (4) the client zustand store is used for app state management which comes
-//   // with pre-loaded data from the server in this case
-//   return {
-//     props: {
-//       preloadedState: {
-//         pokemons: pokemonState.pokemons,
-//       },
-//     },
-//   };
-// };
-
-// this demo is also SSG-friendly
-// un-comment getStaticProps() and comment getServerSideProps() to see it
-
-export const getStaticProps: GetStaticProps<{
+export const getServerSideProps: GetServerSideProps<{
   preloadedState: Partial<PokemonStateWithoutFunctions>;
 }> = async () => {
   const response = await fetch(
@@ -127,10 +92,21 @@ export const getStaticProps: GetStaticProps<{
   );
   const pokemons = (await response.json()) as Pokemon[];
 
+  // create a short-lived, server-side-only zustand store
   const pokemonStore = getPokemonStore.onServer().instance;
+
+  // set raw pokemon list on store
   pokemonStore.getState().setPokemons(pokemons);
+
+  // get current state snapshot
   const pokemonState = pokemonStore.getState();
 
+  // (1) populate props.preloadedState with server-side-fetched data
+  // (2) remember, this is grabbed by _app.tsx at pageProps.preloadedState
+  // and is used by useStoreRef() to create the both server and client zustand stores
+  // (3) the server zustand store is used for SSR/SSG generation
+  // (4) the client zustand store is used for app state management which comes
+  // with pre-loaded data from the server in this case
   return {
     props: {
       preloadedState: {
@@ -139,3 +115,27 @@ export const getStaticProps: GetStaticProps<{
     },
   };
 };
+
+// this demo is also SSG-friendly
+// un-comment getStaticProps() and comment getServerSideProps() to see it
+
+// export const getStaticProps: GetStaticProps<{
+//   preloadedState: Partial<PokemonStateWithoutFunctions>;
+// }> = async () => {
+//   const response = await fetch(
+//     'http://jherr-pokemon.s3.us-west-1.amazonaws.com/index.json'
+//   );
+//   const pokemons = (await response.json()) as Pokemon[];
+
+//   const pokemonStore = getPokemonStore.onServer().instance;
+//   pokemonStore.getState().setPokemons(pokemons);
+//   const pokemonState = pokemonStore.getState();
+
+//   return {
+//     props: {
+//       preloadedState: {
+//         pokemons: pokemonState.pokemons,
+//       },
+//     },
+//   };
+// };
