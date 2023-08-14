@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import styles from '../styles/pages/index.module.css';
-import { Pokemon } from '@/interfaces/pokemon.interface';
+import { Pokemon } from '@/lib/interfaces/pokemon.interface';
 
 interface HomeProps {
   pokemons: Pokemon[];
