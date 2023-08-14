@@ -1,20 +1,20 @@
-import { useMemo, useState } from 'react';
+import { useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
 import styles from '../styles/pages/index.module.css';
 import { Pokemon } from '@/lib/interfaces/pokemon.interface';
+import pokemonStore, { PokemonState } from '@/lib/mobx/pokemon.store';
+import { observer } from 'mobx-react-lite';
 
 interface HomeProps {
-  pokemons: Pokemon[];
+  preloadedState: Partial<PokemonState>;
 }
 
-export default function Home(props: HomeProps) {
-  const [filter, setFilter] = useState('');
-  const filteredPokemons = useMemo(() => {
-    return props.pokemons.filter((pokemon) =>
-      pokemon.name.toLowerCase().includes(filter.toLowerCase())
-    );
-  }, [props.pokemons, filter]);
+function Home(props: HomeProps) {
+  useEffect(() => {
+    props.preloadedState.pokemons &&
+      pokemonStore.setPokemons(props.preloadedState.pokemons);
+  }, [props.preloadedState.pokemons]);
 
   return (
     <div className={styles.main}>
@@ -26,13 +26,13 @@ export default function Home(props: HomeProps) {
       <div>
         <input
           type="text"
-          value={filter}
-          onChange={(e) => setFilter(() => e.target.value)}
+          value={pokemonStore.filter}
+          onChange={(e) => pokemonStore.setFilter(e.target.value)}
           className={styles.search}
         />
       </div>
       <div className={styles.container}>
-        {filteredPokemons.slice(0, 20).map((pokemon) => (
+        {pokemonStore.filteredPokemons.slice(0, 20).map((pokemon) => (
           <div key={pokemon.id} className={styles.image}>
             <img
               alt={pokemon.name}
@@ -46,13 +46,16 @@ export default function Home(props: HomeProps) {
   );
 }
 
-export const getServerSideProps: GetServerSideProps<
-  Pick<HomeProps, 'pokemons'>
-> = async () => {
+export const getServerSideProps: GetServerSideProps<{
+  preloadedState: Partial<PokemonState>;
+}> = async () => {
   const response = await fetch(
     'http://jherr-pokemon.s3.us-west-1.amazonaws.com/index.json'
   );
   const pokemons = (await response.json()) as Pokemon[];
+  pokemonStore.setPokemons(pokemons);
 
-  return { props: { pokemons } };
+  return { props: { preloadedState: { pokemons: pokemonStore.pokemons } } };
 };
+
+export default observer(Home);
