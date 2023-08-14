@@ -1,20 +1,21 @@
-import { useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
-import styles from '../styles/pages/index.module.css';
-import { Pokemon } from '@/lib/interfaces/pokemon.interface';
-import pokemonStore, { PokemonState } from '@/lib/mobx/pokemon.store';
 import { observer } from 'mobx-react-lite';
+
+import styles from '../styles/pages/index.module.css';
+
+import { Pokemon } from '@/lib/interfaces/pokemon.interface';
+import { PokemonState, PokemonStore } from '@/lib/mobx/pokemon.store';
+import usePokemonStore from '@/lib/mobx/use-pokemon-store.hook';
 
 interface HomeProps {
   preloadedState: Partial<PokemonState>;
 }
 
 function Home(props: HomeProps) {
-  useEffect(() => {
-    props.preloadedState.pokemons &&
-      pokemonStore.setPokemons(props.preloadedState.pokemons);
-  }, [props.preloadedState.pokemons]);
+  const filter = usePokemonStore((store) => store.filter);
+  const filteredPokemons = usePokemonStore((store) => store.filteredPokemons);
+  const setFilter = usePokemonStore((store) => store.setFilter);
 
   return (
     <div className={styles.main}>
@@ -26,13 +27,13 @@ function Home(props: HomeProps) {
       <div>
         <input
           type="text"
-          value={pokemonStore.filter}
-          onChange={(e) => pokemonStore.setFilter(e.target.value)}
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
           className={styles.search}
         />
       </div>
       <div className={styles.container}>
-        {pokemonStore.filteredPokemons.slice(0, 20).map((pokemon) => (
+        {filteredPokemons.slice(0, 20).map((pokemon) => (
           <div key={pokemon.id} className={styles.image}>
             <img
               alt={pokemon.name}
@@ -53,6 +54,8 @@ export const getServerSideProps: GetServerSideProps<{
     'http://jherr-pokemon.s3.us-west-1.amazonaws.com/index.json'
   );
   const pokemons = (await response.json()) as Pokemon[];
+
+  const pokemonStore = new PokemonStore();
   pokemonStore.setPokemons(pokemons);
 
   return { props: { preloadedState: { pokemons: pokemonStore.pokemons } } };

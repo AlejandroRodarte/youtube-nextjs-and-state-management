@@ -1,11 +1,17 @@
 import { computed, makeObservable, observable, runInAction } from 'mobx';
+
 import { Pokemon } from '../interfaces/pokemon.interface';
 
 class PokemonStore {
   public pokemons: Pokemon[] = [];
   public filter: string = '';
 
-  constructor() {
+  constructor(preloadedState?: Partial<PokemonState>) {
+    if (preloadedState) {
+      if (preloadedState.filter) this.filter = preloadedState.filter;
+      if (preloadedState.pokemons) this.pokemons = preloadedState.pokemons;
+    }
+
     makeObservable(this, {
       pokemons: observable,
       filter: observable,
@@ -13,19 +19,23 @@ class PokemonStore {
     });
   }
 
-  public setPokemons(pokemons: Pokemon[]) {
+  public getState(): PokemonState {
+    return { filter: this.filter, pokemons: this.pokemons };
+  }
+
+  setPokemons = (pokemons: Pokemon[]) => {
     runInAction(() => {
       this.pokemons = pokemons;
     });
-  }
+  };
 
-  public setFilter(filter: string) {
+  setFilter = (filter: string) => {
     runInAction(() => {
       this.filter = filter;
     });
-  }
+  };
 
-  get filteredPokemons() {
+  get filteredPokemons(): Pokemon[] {
     return this.pokemons.filter((p) =>
       p.name.toLowerCase().includes(this.filter.toLowerCase())
     );
