@@ -29,6 +29,10 @@ const createFullStateCreator = (
     ...preloadedState,
     setPokemons: (pokemons) => set({ pokemons }),
     setFilter: (filter) => set({ filter }),
+    rehydrate: ({ filter, pokemons } = {}) => {
+      if (filter) set({ filter });
+      if (pokemons) set({ pokemons });
+    },
   });
 
   // wrap both state creator (handler and computeState) with the computed() middleware

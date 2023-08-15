@@ -7,6 +7,7 @@ export interface PokemonState {
   filter: string;
   setPokemons: (pokemons: Pokemon[]) => void;
   setFilter: (filter: string) => void;
+  rehydrate: (partialState?: Partial<PokemonStateWithoutFunctions>) => void;
 }
 
 // zustand state interface for computed properties
