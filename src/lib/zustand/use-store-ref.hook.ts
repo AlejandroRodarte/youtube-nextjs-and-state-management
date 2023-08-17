@@ -1,62 +1,86 @@
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 
-import { PokemonClientStore, PokemonStore } from './pokemon-store.type';
-import { PokemonStateWithoutFunctions } from './pokemon.state';
+import { PokemonStore } from './pokemon-store.type';
+import {
+  PokemonFullState,
+  PokemonState,
+  PokemonStateWithoutFunctions,
+} from './pokemon.state';
 import getPokemonStore from './get-pokemon-store.helper';
 import { IS_SERVER } from '../constants/is-server.constant';
 
-// client store singleton for second and sub-sequent client-side renders
-let clientPokemonStore: PokemonClientStore | undefined = undefined;
-let isClientStoreSet = false;
+export interface UseStoreRefApi {
+  select: <T>(selector: (state: PokemonFullState) => T) => T;
+  storage: {
+    rehydrate: () => void;
+  };
+  rehydrate: (partialState: Partial<PokemonState>) => void;
+}
 
 // (1) hook that creates a zustand store instance and saves it into a ref
 // (2) why a ref? to avoid triggering unnecessary re-renders
 // (3) this hook is called in BOTH server-side and client-side
 const useStoreRef = (
   preloadedState?: Partial<PokemonStateWithoutFunctions>
-) => {
-  const storeRef = useRef<PokemonStore>();
+): UseStoreRefApi => {
+  // get factory depending on context (server or client)
+  const getStore = IS_SERVER
+    ? getPokemonStore['onServer']
+    : getPokemonStore['onClient'];
 
-  if (!storeRef.current) {
-    // (1) zustand store not created yet; we are on server-side: create server store instance and
-    // load it with pageProps.preloadedState from _app.tsx
-    // (2) this code branch triggers when making the server-side render
-    if (IS_SERVER) storeRef.current = getPokemonStore.onServer(preloadedState);
-    // (1) zustand store not created yet: we are on client-side: create client store instance and
-    // load it with pageProps.preloadedState from _app.tsx
-    // (2) this code branch triggers when making the FIRST client-side render
-    // (should exactly match server-side render)
-    // (3) this client store instance is short-lived and will be replaced on second and sub-sequent
-    // client-side renders
-    else storeRef.current = getPokemonStore.onClient(preloadedState);
-  }
-  // (1) client-side-exclusive code branch: if store ref is defined it means we are on the client-side
+  // (1) initialize server-side and first client-side store instance
+  // with the same, pre-loaded state (to avoid hydration errors)
+  // (2) preloadedState comes from _app.tsx (pageProps.preloadedState)
+  // (3) refs are preferred as they don't trigger re-renders when mutated
+  const storeRef = useRef<PokemonStore>(getStore(preloadedState));
+  const hasRehydratedFromStorage = useRef(false);
+
+  // (1) client-side exclusive code branch
   // (2) if preloadedState exists, it means we jumped to a page with getStaticProps/getServerSideProps
-  // with <Link /> from 'next/link'
+  // either through client-side navigation (using a <Link /> for example)
   // (3) this code branch triggers when making SECOND AND SUB-SEQUENT client-side renders
-  else if (preloadedState) {
+  // (4) in this case, we should simply replace our client-side store with a new one that is initialized
+  // by merging previous state data with the one incoming that was pre-loaded from the server
+  if (!IS_SERVER && preloadedState) {
     const overriddenState = {
       ...storeRef.current.instance.getState(),
       ...preloadedState,
     };
-
-    // (1) client-side store instance for second and sub-sequent client-side renders is not defined,
-    // so create one
-    // (2) this is executed only once during the app's lifespan
-    if (!clientPokemonStore)
-      clientPokemonStore = getPokemonStore.onClient(overriddenState);
-
-    // always make store ref point to this client-side store singleton
-    storeRef.current = clientPokemonStore;
-
-    // re-hydrate by merging previous state with data from getStaticProps/getServerSideProps
-    if (isClientStoreSet)
-      storeRef.current.instance.getState().rehydrate(overriddenState);
-
-    // client-side store singleton set flag
-    if (!isClientStoreSet) isClientStoreSet = true;
+    storeRef.current = getPokemonStore.onClient(overriddenState);
   }
-  return storeRef.current;
+
+  // api method 1: select a piece of state data from the store ref via a selector
+  const select = useCallback(
+    <T>(selector: (state: PokemonFullState) => T) =>
+      storeRef.current.instance(selector),
+    []
+  );
+
+  // (1) api method 2: hydrate client-side store with local-storage data
+  // (2) hydration must only be executed once, hence the hasRehydratedFromStorage flag
+  const rehydrateFromStorage = useCallback(() => {
+    if (
+      storeRef.current.type === 'client' &&
+      !hasRehydratedFromStorage.current
+    ) {
+      storeRef.current.instance.persist.rehydrate();
+      hasRehydratedFromStorage.current = true;
+    }
+  }, []);
+
+  // (1) api method 3: re-hydrate client-side store with some partial state data
+  // (2) this is useful to override current state data with page-specific data that
+  // was fetched either from getStaticProps/getServerSideProps or through a client-side
+  // external API request
+  const rehydrate = useCallback((partialState: Partial<PokemonState>) => {
+    storeRef.current.instance.getState().rehydrate({
+      ...storeRef.current.instance.getState(),
+      ...partialState,
+    });
+  }, []);
+
+  // this hook hides our zustand store and just exposes an api to interact with
+  return { select, storage: { rehydrate: rehydrateFromStorage }, rehydrate };
 };
 
 export default useStoreRef;

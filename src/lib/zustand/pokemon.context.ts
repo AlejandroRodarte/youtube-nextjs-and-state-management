@@ -1,6 +1,8 @@
 import { createContext } from 'react';
 
-import { PokemonStore } from './pokemon-store.type';
+import { UseStoreRefApi } from './use-store-ref.hook';
 
-// our zustand context, which simply holds a zustand store instance
-export const PokemonContext = createContext<PokemonStore | null>(null);
+// our zustand context, which simply holds what's returned by
+// useStoreRef() at _app.tsx, which is an API to interact with
+// the zustand store
+export const PokemonContext = createContext<UseStoreRefApi | null>(null);

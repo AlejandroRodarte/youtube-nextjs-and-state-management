@@ -7,23 +7,30 @@ import styles from '../styles/pages/index.module.css';
 import { Pokemon } from '@/lib/interfaces/pokemon.interface';
 import { PokemonStateWithoutFunctions } from '@/lib/zustand/pokemon.state';
 import getPokemonStore from '@/lib/zustand/get-pokemon-store.helper';
-import usePokemonStore from '@/lib/zustand/use-pokemon-store.hook';
 import useCssClasses from '@/lib/hooks/use-css-classes.hook';
+import usePokemonStore from '@/lib/zustand/use-pokemon-store.hook';
 
 interface HomeProps {
   preloadedState: Partial<PokemonStateWithoutFunctions>;
 }
 
 export default function Home(props: HomeProps) {
-  // (1) access zustand store non-computed and computed properties with usePokemonStore()
-  // (2) usePokemonStore() runs in BOTH server and client
-  // (3) in server, usePokemonStore() grabs the server-side zustand store and is used
+  const api = usePokemonStore();
+  const {
+    select,
+    storage: { rehydrate: rehydrateStorage },
+    rehydrate,
+  } = api;
+
+  // (1) access zustand store non-computed and computed properties with api.select()
+  // (2) api.select() runs in BOTH server and client
+  // (3) in server, api.select() grabs the server-side zustand store and is used
   // for SSR/SSG generation
-  // (4) in client, usePokemonStore() grabs the client-side zustand store and is used
+  // (4) in client, api.select() grabs the client-side zustand store and is used
   // for dynamic state management
-  const filteredPokemons = usePokemonStore((state) => state.filteredPokemons);
-  const filter = usePokemonStore((state) => state.filter);
-  const setFilter = usePokemonStore((state) => state.setFilter);
+  const filteredPokemons = select((state) => state.filteredPokemons);
+  const filter = select((state) => state.filter);
+  const setFilter = select((state) => state.setFilter);
 
   // (1) CSS classes for our main wrapper
   // (2) in server-side and on the first render of the client-side (before next.js hydration),
@@ -43,14 +50,22 @@ export default function Home(props: HomeProps) {
     initialClasses: [styles.main, styles['hidden-element']],
   });
 
-  // (1) client-only code: after next.js hydration (second and subsequent client-side renders), remove
-  // the hidden CSS class to show the dynamic content
-  // (2) source HTML will always have the HTML provided by the server (SSR/SSG)
-  // (3) dynamic HTML, controlled via JavaScript with React, can be edited after hydration, meaning we can
-  // remove this hidden CSS class and showcase our dynamic content properly
   useEffect(() => {
+    // when page loads, rehydrate our store with local-storage data
+    rehydrateStorage();
+    // (1) rehydrate our store with props.preloadedState, which
+    // is data provided by getServerSideProps/getStaticProps
+    // (2) instead of passing props directly, you can make client-side requests to external APIs
+    // which eventually lead to a state-like object that should override current state data
+    // (3) since in this case we are fetching our updated data in getServerSideProps, we can
+    // simply use props.preloadedState to perform this overriding
+    rehydrate(props.preloadedState);
+    // (1) remove the hidden CSS class to show the dynamic content
+    // (2) source HTML will always have the HTML provided by the server (SSR/SSG)
+    // (3) dynamic HTML, controlled via JavaScript with React, can be edited after hydration, meaning we can
+    // remove this hidden CSS class and showcase our dynamic content properly
     removeMainClass(styles['hidden-element']);
-  }, [removeMainClass]);
+  }, [rehydrateStorage, rehydrate, props.preloadedState, removeMainClass]);
 
   return (
     <div className={mainClasses}>
