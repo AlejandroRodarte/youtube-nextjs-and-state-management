@@ -33,21 +33,9 @@ const useStoreRef = (
   // (2) preloadedState comes from _app.tsx (pageProps.preloadedState)
   // (3) refs are preferred as they don't trigger re-renders when mutated
   const storeRef = useRef<PokemonStore>(getStore(preloadedState));
-  const hasRehydratedFromStorage = useRef(false);
 
-  // (1) client-side exclusive code branch
-  // (2) if preloadedState exists, it means we jumped to a page with getStaticProps/getServerSideProps
-  // either through client-side navigation (using a <Link /> for example)
-  // (3) this code branch triggers when making SECOND AND SUB-SEQUENT client-side renders
-  // (4) in this case, we should simply replace our client-side store with a new one that is initialized
-  // by merging previous state data with the one incoming that was pre-loaded from the server
-  if (!IS_SERVER && preloadedState) {
-    const overriddenState = {
-      ...storeRef.current.instance.getState(),
-      ...preloadedState,
-    };
-    storeRef.current = getPokemonStore.onClient(overriddenState);
-  }
+  // one-shot flag to hydrate store from storage only once
+  const hasRehydratedFromStorage = useRef(false);
 
   // api method 1: select a piece of state data from the store ref via a selector
   const select = useCallback(
