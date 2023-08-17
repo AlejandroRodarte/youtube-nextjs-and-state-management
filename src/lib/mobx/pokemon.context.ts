@@ -1,7 +1,7 @@
 import { createContext } from 'react';
 
-import { PokemonStore } from './pokemon.store';
+import { UseStoreRefApi } from './use-store-ref.hook';
 
-const PokemonContext = createContext<PokemonStore | null>(null);
+const PokemonContext = createContext<UseStoreRefApi | null>(null);
 
 export default PokemonContext;

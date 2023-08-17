@@ -1,10 +1,21 @@
-import { computed, makeObservable, observable, runInAction } from 'mobx';
+import { action, computed, makeObservable, observable } from 'mobx';
+import { persist } from 'mobx-persist';
 
 import { Pokemon } from '../interfaces/pokemon.interface';
 
-class PokemonStore {
-  public pokemons: Pokemon[] = [];
-  public filter: string = '';
+export interface PokemonState {
+  pokemons: Pokemon[];
+  filter: string;
+}
+
+export class PokemonStore {
+  @persist('list')
+  @observable
+  public pokemons: PokemonState['pokemons'] = [];
+
+  @persist
+  @observable
+  public filter: PokemonState['filter'] = '';
 
   constructor(preloadedState?: Partial<PokemonState>) {
     if (preloadedState) {
@@ -12,38 +23,33 @@ class PokemonStore {
       if (preloadedState.pokemons) this.pokemons = preloadedState.pokemons;
     }
 
-    makeObservable(this, {
-      pokemons: observable,
-      filter: observable,
-      filteredPokemons: computed,
-    });
+    makeObservable(this);
   }
 
   public getState(): PokemonState {
     return { filter: this.filter, pokemons: this.pokemons };
   }
 
+  @action
   setPokemons = (pokemons: Pokemon[]) => {
-    runInAction(() => {
-      this.pokemons = pokemons;
-    });
+    this.pokemons = pokemons;
   };
 
+  @action
   setFilter = (filter: string) => {
-    runInAction(() => {
-      this.filter = filter;
-    });
+    this.filter = filter;
   };
 
+  @action
+  rehydrate = (partialState: Partial<PokemonState>) => {
+    if (partialState.filter) this.filter = partialState.filter;
+    if (partialState.pokemons) this.pokemons = partialState.pokemons;
+  };
+
+  @computed
   get filteredPokemons(): Pokemon[] {
     return this.pokemons.filter((p) =>
       p.name.toLowerCase().includes(this.filter.toLowerCase())
     );
   }
 }
-
-type PokemonState = Pick<PokemonStore, 'filter' | 'pokemons'>;
-
-const pokemonStore = new PokemonStore();
-
-export { pokemonStore as default, type PokemonState, PokemonStore };

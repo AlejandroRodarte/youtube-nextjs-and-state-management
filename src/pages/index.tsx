@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import Head from 'next/head';
+import Link from 'next/link';
 import { observer } from 'mobx-react-lite';
 
 import styles from '../styles/pages/index.module.css';
@@ -13,9 +15,20 @@ interface HomeProps {
 }
 
 function Home(props: HomeProps) {
-  const filter = usePokemonStore((store) => store.filter);
-  const filteredPokemons = usePokemonStore((store) => store.filteredPokemons);
-  const setFilter = usePokemonStore((store) => store.setFilter);
+  const {
+    select,
+    storage: { rehydrate: rehydrateStorage },
+    rehydrate,
+  } = usePokemonStore();
+
+  const filter = select((store) => store.filter);
+  const filteredPokemons = select((store) => store.filteredPokemons);
+  const setFilter = select((store) => store.setFilter);
+
+  useEffect(() => {
+    rehydrateStorage();
+    rehydrate(props.preloadedState);
+  }, [props.preloadedState, rehydrateStorage, rehydrate]);
 
   return (
     <div className={styles.main}>
@@ -25,6 +38,7 @@ function Home(props: HomeProps) {
         <link rel="icon" href="/favicon.png" />
       </Head>
       <div>
+        <Link href="/count">Count</Link>
         <input
           type="text"
           value={filter}
@@ -58,7 +72,13 @@ export const getServerSideProps: GetServerSideProps<{
   const pokemonStore = new PokemonStore();
   pokemonStore.setPokemons(pokemons);
 
-  return { props: { preloadedState: { pokemons: pokemonStore.pokemons } } };
+  return {
+    props: {
+      preloadedState: {
+        pokemons: pokemonStore.pokemons,
+      },
+    },
+  };
 };
 
 export default observer(Home);

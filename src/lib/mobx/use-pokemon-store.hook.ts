@@ -1,13 +1,11 @@
 import { useContext } from 'react';
 
-import { PokemonStore } from './pokemon.store';
 import PokemonContext from './pokemon.context';
 
-const usePokemonStore = <T>(selector: (store: PokemonStore) => T) => {
-  const store = useContext(PokemonContext);
-  if (!store) throw new Error('store not configured');
-  const result = selector(store);
-  return result;
+const usePokemonStore = () => {
+  const api = useContext(PokemonContext);
+  if (!api) throw new Error('context not found');
+  return api;
 };
 
 export default usePokemonStore;
