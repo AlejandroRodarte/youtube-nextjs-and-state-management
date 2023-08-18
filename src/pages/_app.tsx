@@ -1,16 +1,19 @@
 import '@/styles/globals.css';
-import type { AppProps } from 'next/app';
-import { Provider } from 'react-redux';
 
-import { getStore } from '@/lib/redux/get-store.helper';
+import { Provider } from 'react-redux';
+import type { AppProps } from 'next/app';
+
+import useStoreRef from '@/lib/redux/use-store-ref.hook';
+import StoreContext from '@/lib/redux/store-context.context';
 
 export default function App({ Component, pageProps }: AppProps) {
-  // create store instance and initialize with a pre-populated root state object
-  // that may have been populated by getStaticProps/getServerSideProps
-  const store = getStore();
+  // get store ref and api and pass it down to the related components
+  const { refs, api } = useStoreRef(pageProps.preloadedState);
   return (
-    <Provider store={store}>
-      <Component {...pageProps} />;
+    <Provider store={refs.store.current.instance}>
+      <StoreContext.Provider value={api}>
+        <Component {...pageProps} />
+      </StoreContext.Provider>
     </Provider>
   );
 }

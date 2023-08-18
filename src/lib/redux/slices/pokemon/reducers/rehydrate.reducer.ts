@@ -1,3 +1,4 @@
+import patchObject from '@/lib/helpers/patch-object.helper';
 import { CaseReducers, ReducerThis } from '../case-reducers.type';
 
 type Args = Parameters<CaseReducers['rehydrate']>;
@@ -9,9 +10,6 @@ export default function rehydrate(
   state: State,
   action: Action
 ): ReturnType<CaseReducers['setSearch']> {
-  state.error = action.payload.error;
-  state.pending = action.payload.pending;
-  state.pokemons = action.payload.pokemons;
-  state.filteredPokemons = action.payload.filteredPokemons;
-  state.search = action.payload.search;
+  // merge current state (writable) with deeply-optional pokemon state
+  patchObject(state, action.payload);
 }

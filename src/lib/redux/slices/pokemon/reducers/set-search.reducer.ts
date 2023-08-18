@@ -12,9 +12,5 @@ export default function setSearch(
   state: State,
   action: Action
 ): ReturnType<CaseReducers['setSearch']> {
-  // update search filter value and filtered pokemon list
   state.search = action.payload.value;
-  state.filteredPokemons = state.pokemons.filter((pokemon) =>
-    pokemon.name.toLowerCase().includes(state.search.toLowerCase())
-  );
 }

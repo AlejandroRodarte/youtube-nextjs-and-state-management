@@ -1,12 +1,7 @@
-import { ToolkitStore } from '@reduxjs/toolkit/dist/configureStore';
-import { AnyAction, ThunkMiddleware } from '@reduxjs/toolkit';
+import createStore from './create-store.helper';
 
-import { RootState } from './root-state.type';
-
-// return type from calling configureStore() with our current setup
-// may require modification as we alter it
-export type Store = ToolkitStore<
-  RootState,
-  AnyAction,
-  [ThunkMiddleware<RootState, AnyAction>]
+// return type from either server-side store factory or
+// client-side store factory
+export type Store = ReturnType<
+  typeof createStore.onClient | typeof createStore.onServer
 >;

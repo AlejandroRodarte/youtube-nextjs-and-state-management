@@ -1,10 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-import initialState from './initial-state.object';
 import setSearch from './reducers/set-search.reducer';
 import extraReducers from './extra-reducers.helper';
 import { SLICE_NAME } from './slice-name.constant';
 import rehydrate from './reducers/rehydrate.reducer';
+import createInitialPokemonState from './create-initial-pokemon-state.helper';
 
 // the store slice object itself
 // (1) give it a name
@@ -13,7 +13,7 @@ import rehydrate from './reducers/rehydrate.reducer';
 // (4) give it the extra reducers with async-thunk-related actions
 const pokemonSlice = createSlice({
   name: SLICE_NAME,
-  initialState,
+  initialState: createInitialPokemonState(),
   reducers: {
     rehydrate,
     setSearch,

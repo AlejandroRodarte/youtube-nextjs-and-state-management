@@ -16,7 +16,6 @@ const extraReducers = (builder: ActionReducerMapBuilder<PokemonState>) => {
     .addCase(getPokemons.fulfilled, (state, action) => {
       state.pending = false;
       state.pokemons = action.payload.pokemons;
-      state.filteredPokemons = action.payload.pokemons;
     })
     // rejected state: clear pending flag and set error flag
     .addCase(getPokemons.rejected, (state) => {

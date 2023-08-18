@@ -5,6 +5,7 @@ import {
 } from '@reduxjs/toolkit';
 
 import { PokemonState } from './pokemon-state.interface';
+import { DeepPartial } from '@/lib/types/deep-partial.type';
 
 // payload for actions.setSearch()
 interface SetSearch {
@@ -23,7 +24,7 @@ export type CaseReducers = {
   rehydrate: (
     this: ReducerThis,
     state: Draft<PokemonState>,
-    action: PayloadAction<PokemonState>
+    action: PayloadAction<DeepPartial<PokemonState>>
   ) => void;
   // signature for actions.setSearch()
   setSearch: (
