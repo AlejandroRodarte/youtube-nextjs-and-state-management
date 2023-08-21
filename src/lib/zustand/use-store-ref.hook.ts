@@ -25,14 +25,15 @@ const useStoreRef = (
 ): UseStoreRefApi => {
   // get factory depending on context (server or client)
   const getStore = IS_SERVER
-    ? getPokemonStore['onServer']
-    : getPokemonStore['onClient'];
+    ? getPokemonStore.onServer
+    : getPokemonStore.onClient;
 
-  // (1) initialize server-side and first client-side store instance
+  // (1) initialize server-side and first client-side store instance once
   // with the same, pre-loaded state (to avoid hydration errors)
   // (2) preloadedState comes from _app.tsx (pageProps.preloadedState)
   // (3) refs are preferred as they don't trigger re-renders when mutated
-  const storeRef = useRef<PokemonStore>(getStore(preloadedState));
+  const storeRef = useRef<PokemonStore>();
+  if (!storeRef.current) storeRef.current = getStore(preloadedState);
 
   // one-shot flag to hydrate store from storage only once
   const hasRehydratedFromStorage = useRef(false);
@@ -40,7 +41,7 @@ const useStoreRef = (
   // api method 1: select a piece of state data from the store ref via a selector
   const select = useCallback(
     <T>(selector: (state: PokemonFullState) => T) =>
-      storeRef.current.instance(selector),
+      storeRef.current!.instance(selector),
     []
   );
 
@@ -48,6 +49,7 @@ const useStoreRef = (
   // (2) hydration must only be executed once, hence the hasRehydratedFromStorage flag
   const rehydrateFromStorage = useCallback(() => {
     if (
+      storeRef.current &&
       storeRef.current.type === 'client' &&
       !hasRehydratedFromStorage.current
     ) {
@@ -61,10 +63,11 @@ const useStoreRef = (
   // was fetched either from getStaticProps/getServerSideProps or through a client-side
   // external API request
   const rehydrate = useCallback((partialState: Partial<PokemonState>) => {
-    storeRef.current.instance.getState().rehydrate({
-      ...storeRef.current.instance.getState(),
-      ...partialState,
-    });
+    if (storeRef.current)
+      storeRef.current.instance.getState().rehydrate({
+        ...storeRef.current.instance.getState(),
+        ...partialState,
+      });
   }, []);
 
   // this hook hides our zustand store and just exposes an api to interact with
