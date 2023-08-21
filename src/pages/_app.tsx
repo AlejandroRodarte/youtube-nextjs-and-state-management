@@ -9,8 +9,10 @@ import StoreContext from '@/lib/redux/store-context.context';
 export default function App({ Component, pageProps }: AppProps) {
   // get store ref and api and pass it down to the related components
   const { refs, api } = useStoreRef(pageProps.preloadedState);
+
+  // we are sure refs.store.current is always defined
   return (
-    <Provider store={refs.store.current.instance}>
+    <Provider store={refs.store.current!.instance}>
       <StoreContext.Provider value={api}>
         <Component {...pageProps} />
       </StoreContext.Provider>

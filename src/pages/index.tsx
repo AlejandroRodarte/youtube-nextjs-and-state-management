@@ -1,4 +1,4 @@
-import { GetServerSideProps } from 'next';
+import { GetServerSideProps, GetStaticProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
 
@@ -104,3 +104,28 @@ export const getServerSideProps: GetServerSideProps<{
     },
   };
 };
+
+// export const getStaticProps: GetStaticProps<{
+//   preloadedState: DeepPartial<RootState>;
+// }> = async () => {
+//   // create server-side store
+//   const store = createStore.onServer();
+
+//   // fetch data and save it in state
+//   await store.instance.dispatch(getPokemons());
+
+//   // get state snapshot
+//   const state = store.instance.getState();
+
+//   // use state snapshot to populate custom deeply-optional root state
+//   // that we can use to re-hydrate store in the client later on
+//   return {
+//     props: {
+//       preloadedState: {
+//         pokemon: {
+//           pokemons: state.pokemon.pokemons,
+//         },
+//       },
+//     },
+//   };
+// };

@@ -13,9 +13,10 @@ import { DeepPartial } from '../types/deep-partial.type';
 // refs for our server-side and client-side store, plus a helpful api to
 // perform storage and manual re-hydration
 const useStoreRef = (preloadedState: DeepPartial<RootState>) => {
-  // initialize store ref
+  // initialize store ref once with preloaded state from server (SSR/SSG)
   const getStore = IS_SERVER ? createStore.onServer : createStore.onClient;
-  const storeRef = useRef<Store>(getStore(preloadedState));
+  const storeRef = useRef<Store>();
+  if (!storeRef.current) storeRef.current = getStore(preloadedState);
 
   // one-shot flag to re-hydrate from local storage (must occur once)
   const hasRehydratedFromStorage = useRef(false);
@@ -62,7 +63,8 @@ const useStoreRef = (preloadedState: DeepPartial<RootState>) => {
         const pokemonState: PokemonState = JSON.parse(rootStateObject.pokemon);
 
         // hydrate slice
-        storeRef.current.instance.dispatch(actions.rehydrate(pokemonState));
+        if (storeRef.current)
+          storeRef.current.instance.dispatch(actions.rehydrate(pokemonState));
       }
 
       // regardless of finding data in local storage or not, this task must only
@@ -74,7 +76,7 @@ const useStoreRef = (preloadedState: DeepPartial<RootState>) => {
   // manual re-hydration by merging current state with a deeply-optional root state
   const rehydrate = useCallback((partialState: DeepPartial<RootState>) => {
     // if slice data is defined, dispatch re-hydrate action
-    if (partialState.pokemon)
+    if (storeRef.current && partialState.pokemon)
       storeRef.current.instance.dispatch(
         actions.rehydrate(partialState.pokemon)
       );
