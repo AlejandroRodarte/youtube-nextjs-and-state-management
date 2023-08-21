@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { GetServerSideProps } from 'next';
+import { GetServerSideProps, GetStaticProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
 import { observer } from 'mobx-react-lite';
@@ -86,5 +86,25 @@ export const getServerSideProps: GetServerSideProps<{
     },
   };
 };
+
+// export const getStaticProps: GetStaticProps<{
+//   preloadedState: Partial<PokemonState>;
+// }> = async () => {
+//   const response = await fetch(
+//     'http://jherr-pokemon.s3.us-west-1.amazonaws.com/index.json'
+//   );
+//   const pokemons = (await response.json()) as Pokemon[];
+
+//   const pokemonStore = new PokemonStore();
+//   pokemonStore.setPokemons(pokemons);
+
+//   return {
+//     props: {
+//       preloadedState: {
+//         pokemons: pokemonStore.pokemons,
+//       },
+//     },
+//   };
+// };
 
 export default observer(Home);

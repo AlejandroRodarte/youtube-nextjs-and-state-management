@@ -13,12 +13,14 @@ export interface UseStoreRefApi {
 }
 
 const useStoreRef = (preloadedState?: Partial<PokemonState>) => {
-  const storeRef = useRef<PokemonStore>(new PokemonStore(preloadedState));
+  const storeRef = useRef<PokemonStore>();
+  if (!storeRef.current) storeRef.current = new PokemonStore(preloadedState);
+
   const hasRehydratedFromStorage = useRef(false);
   const hasConnectedToStorage = useRef(false);
 
   const select = useCallback(
-    <T>(selector: (store: PokemonStore) => T) => selector(storeRef.current),
+    <T>(selector: (store: PokemonStore) => T) => selector(storeRef.current!),
     []
   );
 
@@ -30,7 +32,7 @@ const useStoreRef = (preloadedState?: Partial<PokemonState>) => {
   const rehydrateFromStorage = useCallback(() => {
     if (!IS_SERVER && !hasRehydratedFromStorage.current) {
       const storageStateString = window.localStorage.getItem('pokemon-storage');
-      if (storageStateString) {
+      if (storeRef.current && storageStateString) {
         const storageStateObject: PokemonState = JSON.parse(storageStateString);
         storeRef.current.rehydrate(storageStateObject);
       }
@@ -39,10 +41,11 @@ const useStoreRef = (preloadedState?: Partial<PokemonState>) => {
   }, []);
 
   const rehydrate = useCallback((partialState: Partial<PokemonState>) => {
-    storeRef.current.rehydrate({
-      ...storeRef.current.getState(),
-      ...partialState,
-    });
+    if (storeRef.current)
+      storeRef.current.rehydrate({
+        ...storeRef.current.getState(),
+        ...partialState,
+      });
   }, []);
 
   return { select, storage: { rehydrate: rehydrateFromStorage }, rehydrate };
