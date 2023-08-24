@@ -82,6 +82,6 @@ export const getServerSideProps: GetServerSideProps<{
   const pokemons = (await response.json()) as Pokemon[];
 
   return {
-    props: { preloadedState: { pokemon: { pokemons: [pokemons[0]] } } },
+    props: { preloadedState: { pokemon: { pokemons } } },
   };
 };
