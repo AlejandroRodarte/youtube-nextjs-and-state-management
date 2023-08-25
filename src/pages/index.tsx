@@ -6,7 +6,7 @@ import Link from 'next/link';
 import styles from '../styles/pages/index.module.css';
 import { Pokemon } from '@/lib/interfaces/pokemon.interface';
 import { PokemonStateWithoutFunctions } from '@/lib/zustand/pokemon.state';
-import getPokemonStore from '@/lib/zustand/get-pokemon-store.helper';
+import createPokemonStore from '@/lib/zustand/create-pokemon-store.helper';
 import useCssClasses from '@/lib/hooks/use-css-classes.hook';
 import usePokemonStore from '@/lib/zustand/use-pokemon-store.hook';
 
@@ -108,7 +108,7 @@ export const getServerSideProps: GetServerSideProps<{
   const pokemons = (await response.json()) as Pokemon[];
 
   // create a short-lived, server-side-only zustand store
-  const pokemonStore = getPokemonStore.onServer().instance;
+  const pokemonStore = createPokemonStore.onServer().instance;
 
   // set raw pokemon list on store
   pokemonStore.getState().setPokemons(pokemons);
@@ -142,7 +142,7 @@ export const getServerSideProps: GetServerSideProps<{
 //   );
 //   const pokemons = (await response.json()) as Pokemon[];
 
-//   const pokemonStore = getPokemonStore.onServer().instance;
+//   const pokemonStore = createPokemonStore.onServer().instance;
 //   pokemonStore.getState().setPokemons(pokemons);
 //   const pokemonState = pokemonStore.getState();
 

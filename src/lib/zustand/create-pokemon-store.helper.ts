@@ -38,7 +38,7 @@ const createFullStateCreator = (
 };
 
 // create a zustand store...
-const getPokemonStore = {
+const createPokemonStore = {
   // ...for the client
   onClient: (preloadedState?: Partial<PokemonStateWithoutFunctions>) => {
     const fullStateCreator = createFullStateCreator(preloadedState);
@@ -66,4 +66,4 @@ const getPokemonStore = {
   },
 };
 
-export default getPokemonStore;
+export default createPokemonStore;

@@ -6,7 +6,7 @@ import {
   PokemonState,
   PokemonStateWithoutFunctions,
 } from './pokemon.state';
-import getPokemonStore from './get-pokemon-store.helper';
+import createPokemonStore from './create-pokemon-store.helper';
 import { IS_SERVER } from '../constants/is-server.constant';
 
 export interface UseStoreRefApi {
@@ -24,16 +24,16 @@ const useStoreRef = (
   preloadedState?: Partial<PokemonStateWithoutFunctions>
 ): UseStoreRefApi => {
   // get factory depending on context (server or client)
-  const getStore = IS_SERVER
-    ? getPokemonStore.onServer
-    : getPokemonStore.onClient;
+  const createStore = IS_SERVER
+    ? createPokemonStore.onServer
+    : createPokemonStore.onClient;
 
   // (1) initialize server-side and first client-side store instance once
   // with the same, pre-loaded state (to avoid hydration errors)
   // (2) preloadedState comes from _app.tsx (pageProps.preloadedState)
   // (3) refs are preferred as they don't trigger re-renders when mutated
   const storeRef = useRef<PokemonStore>();
-  if (!storeRef.current) storeRef.current = getStore(preloadedState);
+  if (!storeRef.current) storeRef.current = createStore(preloadedState);
 
   // one-shot flag to hydrate store from storage only once
   const hasRehydratedFromStorage = useRef(false);
