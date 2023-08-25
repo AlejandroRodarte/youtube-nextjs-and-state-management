@@ -7,7 +7,9 @@ import useSyncAtomWithStorage from './use-sync-atom-with-storage.hook';
 // custom hook to run a useEffect() code once to sync all store atoms with local storage data
 const useSyncStorage = () => {
   // get hasSyncedWithStorage's one-shot api
-  const { hasSyncedWithStorage } = useGlobalContext();
+  const {
+    hasSyncedWithStorage: { get: getFlag, set: setFlag },
+  } = useGlobalContext();
 
   // get helpers for each store atom
   const syncPokemonsWithStorage = useSyncAtomWithStorage({
@@ -19,11 +21,11 @@ const useSyncStorage = () => {
 
   // run helpers for each store atom once
   useEffect(() => {
-    if (hasSyncedWithStorage.get()) return;
+    if (getFlag()) return;
     syncPokemonsWithStorage();
     syncFilterWithStorage();
-    hasSyncedWithStorage.set(true);
-  }, [syncPokemonsWithStorage, syncFilterWithStorage]);
+    setFlag(true);
+  }, [syncPokemonsWithStorage, syncFilterWithStorage, getFlag, setFlag]);
 };
 
 export default useSyncStorage;

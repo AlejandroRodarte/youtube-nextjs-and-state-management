@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { GetServerSideProps } from 'next';
+import { GetServerSideProps, GetStaticProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useAtomValue } from 'jotai';
@@ -85,3 +85,16 @@ export const getServerSideProps: GetServerSideProps<{
     props: { preloadedState: { pokemon: { pokemons } } },
   };
 };
+
+// export const getStaticProps: GetStaticProps<{
+//   preloadedState: DeepPartial<AtomsState>;
+// }> = async () => {
+//   const response = await fetch(
+//     'http://jherr-pokemon.s3.us-west-1.amazonaws.com/index.json'
+//   );
+//   const pokemons = (await response.json()) as Pokemon[];
+
+//   return {
+//     props: { preloadedState: { pokemon: { pokemons } } },
+//   };
+// };
