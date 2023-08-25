@@ -41,11 +41,7 @@ const useStoreRef = (preloadedState?: Partial<PokemonState>) => {
   }, []);
 
   const rehydrate = useCallback((partialState: Partial<PokemonState>) => {
-    if (storeRef.current)
-      storeRef.current.rehydrate({
-        ...storeRef.current.getState(),
-        ...partialState,
-      });
+    if (storeRef.current) storeRef.current.rehydrate(partialState);
   }, []);
 
   return { select, storage: { rehydrate: rehydrateFromStorage }, rehydrate };
