@@ -22,7 +22,8 @@ const useStoreRef = (preloadedState?: DeepPartial<State>) => {
   if (!subjectsConfigsRef.current)
     subjectsConfigsRef.current = createSubjectsConfigs(preloadedState);
   // if our ref is defined, it means client-side navigation is active
-  else hasClientSideNavigationBegan.current = true;
+  else if (!hasClientSideNavigationBegan.current)
+    hasClientSideNavigationBegan.current = true;
 
   // derive computed observables on subjects configs once on server
   // and once on client
