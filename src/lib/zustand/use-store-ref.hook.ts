@@ -62,13 +62,13 @@ const useStoreRef = (
   // (2) this is useful to override current state data with page-specific data that
   // was fetched either from getStaticProps/getServerSideProps or through a client-side
   // external API request
-  const rehydrate = useCallback((partialState: Partial<PokemonState>) => {
-    if (storeRef.current)
-      storeRef.current.instance.getState().rehydrate({
-        ...storeRef.current.instance.getState(),
-        ...partialState,
-      });
-  }, []);
+  const rehydrate = useCallback(
+    (partialState: Partial<PokemonStateWithoutFunctions>) => {
+      if (storeRef.current)
+        storeRef.current.instance.getState().rehydrate(partialState);
+    },
+    []
+  );
 
   // this hook hides our zustand store and just exposes an api to interact with
   return { select, storage: { rehydrate: rehydrateFromStorage }, rehydrate };
