@@ -42,9 +42,10 @@ export default function Home(props: HomeProps) {
   // note: it's up to the developer what data to re-hydrate the store with;
   // I use SSR data from props.preloadedState
   useEffect(() => {
-    rehydrateStorage();
-    rehydrate(props.preloadedState);
-    removeMainClass(styles['hidden-element']);
+    rehydrateStorage().then(() => {
+      rehydrate(props.preloadedState);
+      removeMainClass(styles['hidden-element']);
+    });
   }, [rehydrate, rehydrateStorage, props.preloadedState, removeMainClass]);
 
   return (

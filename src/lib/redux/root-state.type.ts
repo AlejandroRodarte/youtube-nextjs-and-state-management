@@ -5,8 +5,3 @@ import { SLICE_NAME as POKEMON_SLICE_NAME } from './slices/pokemon/slice-name.co
 export type RootState = {
   [POKEMON_SLICE_NAME]: PokemonState;
 };
-
-// stringified root state returned by redux-persist
-export type StringifiedRootState = {
-  [Slice in keyof RootState]: string;
-};
