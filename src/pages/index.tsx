@@ -31,9 +31,10 @@ function Home(props: HomeProps) {
   });
 
   useEffect(() => {
-    rehydrateStorage();
-    rehydrate(props.preloadedState);
-    removeMainClass(styles['hidden-element']);
+    rehydrateStorage().then(() => {
+      rehydrate(props.preloadedState);
+      removeMainClass(styles['hidden-element']);
+    });
   }, [props.preloadedState, rehydrateStorage, rehydrate, removeMainClass]);
 
   return (

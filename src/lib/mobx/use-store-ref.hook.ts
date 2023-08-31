@@ -7,7 +7,7 @@ import hydrate from '../constants/hydrate.constant';
 export interface UseStoreRefApi {
   select: <T>(selector: (store: PokemonStore) => T) => T;
   storage: {
-    rehydrate: () => void;
+    rehydrate: () => Promise<void>;
   };
   rehydrate: (partialState: Partial<PokemonState>) => void;
 }
@@ -24,12 +24,12 @@ const useStoreRef = (preloadedState?: Partial<PokemonState>) => {
     []
   );
 
-  if (!IS_SERVER && !hasConnectedToStorage.current) {
-    hydrate('pokemon-storage', storeRef.current);
-    hasConnectedToStorage.current = true;
-  }
+  const rehydrateFromStorage = useCallback(async () => {
+    if (!IS_SERVER && !hasConnectedToStorage.current && storeRef.current) {
+      await hydrate('pokemon-storage', storeRef.current);
+      hasConnectedToStorage.current = true;
+    }
 
-  const rehydrateFromStorage = useCallback(() => {
     if (!IS_SERVER && !hasRehydratedFromStorage.current) {
       const storageStateString = window.localStorage.getItem('pokemon-storage');
       if (storeRef.current && storageStateString) {
