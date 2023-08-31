@@ -16,7 +16,6 @@ const useStoreRef = (preloadedState?: Partial<PokemonState>) => {
   const storeRef = useRef<PokemonStore>();
   if (!storeRef.current) storeRef.current = new PokemonStore(preloadedState);
 
-  const hasRehydratedFromStorage = useRef(false);
   const hasConnectedToStorage = useRef(false);
 
   const select = useCallback(
@@ -28,15 +27,6 @@ const useStoreRef = (preloadedState?: Partial<PokemonState>) => {
     if (!IS_SERVER && !hasConnectedToStorage.current && storeRef.current) {
       await hydrate('pokemon-storage', storeRef.current);
       hasConnectedToStorage.current = true;
-    }
-
-    if (!IS_SERVER && !hasRehydratedFromStorage.current) {
-      const storageStateString = window.localStorage.getItem('pokemon-storage');
-      if (storeRef.current && storageStateString) {
-        const storageStateObject: PokemonState = JSON.parse(storageStateString);
-        storeRef.current.rehydrate(storageStateObject);
-      }
-      hasRehydratedFromStorage.current = true;
     }
   }, []);
 
