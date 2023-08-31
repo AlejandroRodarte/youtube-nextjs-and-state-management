@@ -11,8 +11,14 @@ const patchObject = <T extends object>(
     const originalValue = original[key];
     const patchValue = patch[key];
 
+    const isPatchValid =
+      originalValue !== null &&
+      typeof originalValue !== 'undefined' &&
+      patchValue !== null &&
+      typeof patchValue !== 'undefined';
+
     // there is something to patch
-    if (originalValue && patchValue) {
+    if (isPatchValid) {
       // it's an object: go deeper
       if (
         typeof originalValue === 'object' &&
