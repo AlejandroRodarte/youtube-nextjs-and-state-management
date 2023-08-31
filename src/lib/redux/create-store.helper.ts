@@ -8,7 +8,6 @@ import {
   REGISTER,
   persistReducer,
 } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
 
 import { RootState } from './root-state.type';
 import rootReducer from './root-reducer.reducer';
@@ -41,7 +40,13 @@ const createStore = {
     type: 'client' as const,
     instance: configureStore({
       // implements persistence to local storage
-      reducer: persistReducer({ key: ROOT_STORAGE_KEY, storage }, rootReducer),
+      reducer: persistReducer(
+        {
+          key: ROOT_STORAGE_KEY,
+          storage: require('redux-persist/lib/storage').default,
+        },
+        rootReducer
+      ),
       preloadedState: createPreloadedState(preloadedState),
       // ignore persistence-related actions (triggers warnings if not taken care of)
       middleware: (getDefaultMiddleware) =>
