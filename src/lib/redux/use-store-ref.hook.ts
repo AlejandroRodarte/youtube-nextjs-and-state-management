@@ -36,15 +36,15 @@ const useStoreRef = (preloadedState: DeepPartial<RootState>) => {
       : null
   );
 
-  // are we not connected to local storage yet? if so, connect to it and set flag
-  // so it never runs again
-  if (!IS_SERVER && !hasConnectedToStorage.current && persistorRef.current) {
-    persistorRef.current.persist();
-    hasConnectedToStorage.current = true;
-  }
-
   // re-hydrate store with local storage data
   const rehydrateFromStorage = useCallback(() => {
+    // are we not connected to local storage yet? if so, connect to it and set flag
+    // so it never runs again
+    if (!IS_SERVER && !hasConnectedToStorage.current && persistorRef.current) {
+      persistorRef.current.persist();
+      hasConnectedToStorage.current = true;
+    }
+
     // are we on client and we also haven't re-hydrated from storage yet?
     if (!IS_SERVER && !hasRehydratedFromStorage.current) {
       // try to fetch root state data from local storage
